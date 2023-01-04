@@ -3,17 +3,12 @@ import random
 import os
 import copy
 
-field_size = 3
+field_size = 10
 
 DEAD = " "
-ALIVE = "○"
+ALIVE = "●"
 playfield = []
 
-playfield = [
-    [DEAD, ALIVE, DEAD],
-    [DEAD, ALIVE, DEAD],
-    [DEAD, ALIVE, DEAD]
-]
 
 def countNeighborsOfARow(row, fieldIndex, ownRow = False):
     count = 0
@@ -26,9 +21,7 @@ def countNeighborsOfARow(row, fieldIndex, ownRow = False):
     return count
 
 def countLivingNeighbors(playfield, rowIndex, fieldIndex):
-    #count = random.randrange(0, 8)
     count = 0
-    #return count
     if rowIndex > 0:
         count = count + countNeighborsOfARow(playfield[rowIndex - 1], fieldIndex)
     if rowIndex < field_size - 1:
@@ -45,34 +38,46 @@ def init():
             size = size + 1
             playfield[rows].append(random.choice([ALIVE, DEAD]))
         rows = rows + 1
-        os.system('cls')
+    os.system('cls')
 
-def printPlayfield():
-    print("_" * field_size * 3)
+def isPlayfieldStatic(previousGen, currentGen):
+    equals = True
+    for rowI, row in enumerate(previousGen):
+        if ''.join(row) != ''.join(currentGen[rowI]):
+            equals = False
+    return equals
+
+
+def printPlayfield(generation):
+    os.system('cls')
+    print("__" * (field_size + 1))
     for row in playfield:
         print("|", *row, "|")
     
-    print(u"\u203E" * field_size * 3)
+    print(u"\u203E\u203E" * (field_size + 1))
+    print(f"Generation: {generation}")
 
-    time.sleep(2)
-    os.system('cls')
+generation = 0
+init()
+printPlayfield(generation)
 
-#init()
-printPlayfield()
+changing = True
 ## lifecycle
-while (True):
+while (changing):
+    time.sleep(1)
+    generation = generation + 1
     playfieldPreviousGeneration = copy.deepcopy(playfield)
     for rowI, row in enumerate(playfieldPreviousGeneration):
-        #print(rowI, row)
-        for (fieldI, field) in enumerate(row):
-            #print(field, fieldI)
+        for fieldI, field in enumerate(row):
             neighborsCount = countLivingNeighbors(playfieldPreviousGeneration, rowI, fieldI)
             if field == DEAD and neighborsCount == 3:
                 playfield[rowI][fieldI] = ALIVE
             else:
-                if neighborsCount < 2 or neighborsCount > 4:
+                if neighborsCount < 2 or neighborsCount >= 4:
                     playfield[rowI][fieldI] = DEAD
     
-    printPlayfield()
+    printPlayfield(generation)
+    changing = not isPlayfieldStatic(playfieldPreviousGeneration, playfield)
+    
 
-
+print(f'Game got static after {generation} generations.')
